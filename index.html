@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sky Cast Pro</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+      color: #333;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .weather-app {
+      width: 100%;
+      max-width: 1200px;
+      background-color: rgba(255, 255, 255, 0.98);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .app-header {
+      background: linear-gradient(to right, #ff6ec4, #7873f5);
+      color: white;
+      padding: 30px 25px;
+      text-align: center;
+      position: relative;
+    }
+
+    .app-header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      font-weight: 900;
+    }
+
+    .app-header h3 {
+      font-size: 1.2rem;
+      margin-bottom: 25px;
+      opacity: 0.95;
+    }
+
+    .dark-mode-toggle {
+      position: absolute;
+      top: 15px;
+      right: 25px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    .search-container {
+      max-width: 600px;
+      margin: 0 auto 20px;
+      position: relative;
+    }
+
+    #city-input {
+      width: 100%;
+      padding: 15px 20px;
+      border: none;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      outline: none;
+      padding-right: 140px;
+    }
+
+    #search-btn {
+      position: absolute;
+      right: 5px;
+      top: 5px;
+      background: linear-gradient(to right, #ffb347, #ffcc33);
+      border: none;
+      color: #2c3e50;
+      padding: 10px 25px;
+      border-radius: 50px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    #search-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .forecast-and-info {
+      display: flex;
+      gap: 20px;
+      padding: 25px;
+      flex-wrap: wrap;
+    }
+
+    .info-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-width: 250px;
+    }
+
+    .forecast-section {
+      flex: 2;
+      min-width: 300px;
+    }
+
+    .location-info {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Tool Cards */
+    .info-card,
+    .day-card,
+    .hour-card {
+      border: 2px solid #000;
+      background-clip: padding-box;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      transition: transform 0.3s ease;
+    }
+
+    .info-card:hover,
+    .day-card:hover,
+    .hour-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      border-color: #333;
+    }
+
+    .info-card {
+      background: linear-gradient(to bottom right, #fff8e6, #ffe0b2);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .info-card h3 {
+      color: #4a148c;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #ad1457;
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px dashed #eee;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: #4a148c;
+    }
+
+    .info-value {
+      color: #d81b60;
+      text-align: right;
+    }
+
+    .map-section {
+      margin-top: 20px;
+    }
+
+    .map-frame {
+      width: 100%;
+      height: 0;
+      padding-bottom: 100%; /* Square aspect ratio */
+      position: relative;
+      border: 2px solid #000;
+      border-radius: 12px;
+      overflow: hidden;
+      background-color: #f1f1f1;
+    }
+
+    .map-frame iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .section-title {
+      color: #4a148c;
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #d81b60;
+    }
+
+    .daily-forecast {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+
+    .day-card {
+      background: linear-gradient(to bottom, #fff0f6, #ffe6ec);
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
+    .day-header {
+      background: linear-gradient(to right, #d81b60, #8e24aa);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .day-header h3 {
+      font-size: 1.4rem;
+      margin-bottom: 5px;
+    }
+
+    .day-content {
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .weather-icon {
+      font-size: 2.5rem;
+      text-align: center;
+      grid-column: span 2;
+      margin: 10px 0;
+      color: #8e24aa;
+    }
+
+    .weather-data {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .weather-label {
+      font-size: 0.9rem;
+      color: #4a148c;
+      margin-bottom: 5px;
+    }
+
+    .weather-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #d81b60;
+    }
+
+    .temp-value {
+      font-size: 1.6rem;
+      color: #ad1457;
+    }
+
+    .hourly-forecast {
+      display: flex;
+      overflow-x: auto;
+      gap: 15px;
+      padding: 10px 0;
+      margin-bottom: 10px;
+      scroll-behavior: smooth;
+    }
+
+    .hourly-forecast::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .hourly-forecast::-webkit-scrollbar-thumb {
+      background-color: #d81b60;
+      border-radius: 4px;
+    }
+
+    .hour-card {
+      min-width: 140px;
+      padding: 20px 15px;
+      text-align: center;
+      flex-shrink: 0;
+      background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+      border-radius: 12px;
+      transition: transform 0.2s ease;
+    }
+
+    .hour-card:hover {
+      transform: scale(1.03);
+    }
+
+    .hour-card .hour {
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #4a148c;
+    }
+
+    .hour-card .temp {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #d81b60;
+      margin: 10px 0;
+    }
+
+    .hour-card .weather-icon {
+      font-size: 1.8rem;
+      margin: 5px 0;
+      color: #8e24aa;
+    }
+
+    .scroll-buttons {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .scroll-button {
+      background-color: #ff9800;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .scroll-button:hover {
+      background-color: #e68900;
+    }
+
+    .scroll-slider-container {
+      width: 100%;
+      height: 12px;
+      background-color: #ddd;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .scroll-slider-thumb {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      background-color: #ff9800;
+      border-radius: 10px;
+      z-index: 2;
+    }
+
+    .app-footer {
+      background: linear-gradient(to right, #8e24aa, #d81b60);
+      color: white;
+      text-align: center;
+      padding: 20px;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 900px) {
+      .forecast-and-info {
+        flex-direction: column;
+      }
+      .daily-forecast {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 500px) {
+      .hour-card {
+        min-width: 100px;
+        padding: 15px 10px;
+      }
+      .hour-card .hour {
+        font-size: 0.9rem;
+      }
+      .hour-card .temp {
+        font-size: 1.1rem;
+      }
+      .hour-card .weather-icon {
+        font-size: 1.5rem;
+      }
+    }
+
+    /* Dark Mode Styles */
+    body.dark-mode {
+      background: #1e1e1e;
+      color: #f5f5f5;
+    }
+
+    .weather-app.dark-mode {
+      background-color: #2c2c2c;
+      color: #f5f5f5;
+    }
+
+    .dark-mode .info-card,
+    .dark-mode .day-card,
+    .dark-mode .hour-card {
+      background: #2c2c2c;
+      color: #f5f5f5;
+      border-color: #555;
+    }
+
+    .dark-mode .info-card h3 {
+      color: #ff9800;
+      border-color: #ff9800;
+    }
+
+    .dark-mode .info-label {
+      color: #ccc;
+    }
+
+    .dark-mode .info-value,
+    .dark-mode .weather-value {
+      color: #ff9800;
+    }
+
+    .dark-mode .section-title {
+      color: #ff9800;
+      border-color: #ff9800;
+    }
+
+    .dark-mode .hour-card .hour,
+    .dark-mode .hour-card .temp {
+      color: white;
+    }
+
+    .dark-mode .scroll-slider-thumb {
+      background-color: #ff9800;
+    }
+
+    .dark-mode .scroll-button {
+      background-color: #ff9800;
+      color: black;
+    }
+  </style>
+</head>
+<body>
+  <div class="weather-app">
+    <!-- App Header -->
+    <header class="app-header">
+      <h1>SKY CAST PRO</h1>
+      <h3>Global Weather Forecast</h3>
+      <button id="darkModeToggle" class="dark-mode-toggle">🌙 Dark Mode</button>
+
+      <div class="search-container">
+        <form id="search-form">
+          <input type="text" id="city-input" placeholder="Enter city name (e.g. London, New York, Tokyo)" required />
+          <button type="submit" id="search-btn">
+            <i class="fas fa-search"></i> Get Forecast
+          </button>
+        </form>
+      </div>
+      <p class="app-description">Real-time weather updates with 2-day forecast and hourly predictions</p>
+      <div class="city-tag">Currently viewing: <span id="current-city">New York</span></div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="forecast-and-info">
+      <!-- Left: Location & Time Info -->
+      <div class="info-section">
+        <section class="location-info">
+          <div class="info-card">
+            <h3>Location Details</h3>
+            <div class="info-item"><span class="info-label">Country:</span><span class="info-value" id="country">United States</span></div>
+            <div class="info-item"><span class="info-label">Region:</span><span class="info-value" id="region">New York</span></div>
+            <div class="info-item"><span class="info-label">City:</span><span class="info-value" id="city">New York</span></div>
+            <div class="info-item"><span class="info-label">Latitude:</span><span class="info-value" id="latitude">40.7128</span></div>
+            <div class="info-item"><span class="info-label">Longitude:</span><span class="info-value" id="longitude">-74.0060</span></div>
+            <div class="info-item"><span class="info-label">Timezone:</span><span class="info-value" id="timezone">America/New_York</span></div>
+          </div>
+          <div class="info-card">
+            <h3>Time Information</h3>
+            <div class="info-item"><span class="info-label">Current Time:</span><span class="info-value" id="current-time">10:30 AM</span></div>
+            <div class="info-item"><span class="info-label">Local Date:</span><span class="info-value" id="current-date">June 7, 2025</span></div>
+            <div class="info-item"><span class="info-label">Sunrise:</span><span class="info-value" id="sunrise">5:45 AM</span></div>
+            <div class="info-item"><span class="info-label">Sunset:</span><span class="info-value" id="sunset">8:30 PM</span></div>
+          </div>
+
+          <!-- Map View Section -->
+          <div class="info-card map-section">
+            <h3>Map View</h3>
+            <div class="map-frame">
+              <iframe id="mapFrame"
+                src="https://maps.google.com/maps?q=New%20York&z=14&output=embed"
+                allowfullscreen
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade">
+              </iframe>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right: Forecast Section -->
+      <div class="forecast-section">
+        <h2 class="section-title">2-Day Forecast</h2>
+        <div class="daily-forecast" id="daily-forecast"></div>
+
+        <h2 class="section-title">Hourly Forecast</h2>
+        <div class="scroll-buttons">
+          <button class="scroll-button" id="prevBtn">&#x2190; Prev</button> 
+          <button class="scroll-button" id="nextBtn">Next &#x2192;</button>
+        </div>
+        <div class="hourly-forecast" id="hourly-forecast"></div>
+
+        <!-- Scroll Slider -->
+        <div class="scroll-slider-container" id="scrollSliderContainer">
+          <div class="scroll-slider-thumb" id="scrollSliderThumb"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>Weather data provided by WeatherAPI • Updated every 30 minutes</p>
+      <p>&copy; 2025 Sky Cast Pro - Weather Forecast App. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <script>
+    const locationInfo = {
+      country: document.getElementById('country'),
+      region: document.getElementById('region'),
+      city: document.getElementById('city'),
+      timezone: document.getElementById('timezone'),
+      currentTime: document.getElementById('current-time'),
+      currentDate: document.getElementById('current-date'),
+      sunrise: document.getElementById('sunrise'),
+      sunset: document.getElementById('sunset'),
+      latitude: document.getElementById('latitude'),
+      longitude: document.getElementById('longitude')
+    };
+
+    const currentCityElement = document.getElementById('current-city');
+    const searchForm = document.getElementById('search-form');
+    const cityInput = document.getElementById('city-input');
+    const dailyForecastContainer = document.getElementById('daily-forecast');
+    const hourlyForecastContainer = document.getElementById('hourly-forecast');
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    const API_KEY = 'c4014e58d05148a990e91718250706';
+
+    // Dark Mode Toggle
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    darkModeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      document.querySelector('.weather-app').classList.toggle('dark-mode');
+      document.querySelectorAll('.info-card, .day-card, .hour-card').forEach(el => el.classList.toggle('dark-mode'));
+      darkModeToggle.textContent = document.body.classList.contains('dark-mode') ? '☀️ Light Mode' : '🌙 Dark Mode';
+    });
+
+    function getHourLabel(time, currentHourInCity) {
+      const forecastHour = time.getHours();
+      return forecastHour === currentHourInCity ? 'Now' : time.toLocaleTimeString('en-US', { hour: 'numeric' });
+    }
+
+    function updateHourlyForecast(hourlyData, timeZone) {
+      hourlyForecastContainer.innerHTML = '';
+      
+      const now = new Date();
+      const options = { hour: 'numeric', minute: '2-digit', timeZone };
+      const nowInCity = new Intl.DateTimeFormat('en-US', options).format(now);
+      const currentHourInCity = parseInt(nowInCity.replace(/\D/g, ''));
+
+      // Show only next 24 hours
+      for (let i = 0; i < 24 && i < hourlyData.length; i++) {
+        const hourData = hourlyData[i];
+        const time = new Date(hourData.time);
+        const hourText = getHourLabel(time, currentHourInCity);
+
+        const hourCard = document.createElement('div');
+        hourCard.className = 'hour-card';
+        hourCard.innerHTML = `
+          <div class="hour">${hourText}</div>
+          <div class="weather-icon">${getWeatherIcon(hourData.condition.text)}</div>
+          <div class="temp">${Math.round(hourData.temp_c)}°C</div>
+        `;
+        hourlyForecastContainer.appendChild(hourCard);
+      }
+
+      setupScrollSlider();
+    }
+
+    function getWeatherIcon(condition) {
+      const conditionLower = condition.toLowerCase();
+      if (conditionLower.includes('sun') || conditionLower.includes('clear')) {
+        return '<i class="fas fa-sun"></i>';
+      } else if (conditionLower.includes('cloud')) {
+        return '<i class="fas fa-cloud"></i>';
+      } else if (conditionLower.includes('rain')) {
+        return '<i class="fas fa-cloud-rain"></i>';
+      } else if (conditionLower.includes('storm')) {
+        return '<i class="fas fa-bolt"></i>';
+      } else if (conditionLower.includes('snow')) {
+        return '<i class="fas fa-snowflake"></i>';
+      } else if (conditionLower.includes('fog') || conditionLower.includes('mist')) {
+        return '<i class="fas fa-smog"></i>';
+      } else if (conditionLower.includes('partly')) {
+        return '<i class="fas fa-cloud-sun"></i>';
+      }
+      return '<i class="fas fa-cloud-sun"></i>';
+    }
+
+    function updateLocationInfo(locationData, astroData) {
+      locationInfo.country.textContent = locationData.country;
+      locationInfo.region.textContent = locationData.region;
+      locationInfo.city.textContent = locationData.name;
+      locationInfo.timezone.textContent = locationData.tz_id;
+      locationInfo.latitude.textContent = locationData.lat.toFixed(4);
+      locationInfo.longitude.textContent = locationData.lon.toFixed(4);
+      currentCityElement.textContent = locationData.name;
+
+      const now = new Date();
+
+      // Update Current Time based on city's timezone
+      locationInfo.currentTime.textContent = now.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZone: locationData.tz_id
+      });
+
+      // Update Local Date based on city's timezone
+      locationInfo.currentDate.textContent = now.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: locationData.tz_id
+      });
+
+      locationInfo.sunrise.textContent = astroData.sunrise;
+      locationInfo.sunset.textContent = astroData.sunset;
+
+      // Update Google Map dynamically
+      const cityName = encodeURIComponent(locationData.name);
+      mapFrame.src = `https://maps.google.com/maps?q=${cityName}&z=14&output=embed`;
+    }
+
+    function updateDailyForecast(forecastData) {
+      dailyForecastContainer.innerHTML = '';
+
+      for (let i = 0; i < 2 && i < forecastData.length; i++) {
+        const dayData = forecastData[i];
+        const date = new Date(dayData.date);
+        const dayName = i === 0 ? 'Today' :
+                      i === 1 ? 'Tomorrow' :
+                      date.toLocaleDateString('en-US', { weekday: 'long' });
+
+        const dayCard = document.createElement('div');
+        dayCard.className = 'day-card';
+        dayCard.innerHTML = `
+          <div class="day-header">
+            <h3>${dayName}</h3>
+            <p>${date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          </div>
+          <div class="day-content">
+            <div class="weather-icon">${getWeatherIcon(dayData.day.condition.text)}</div>
+            <div class="weather-data">
+              <span class="weather-label">Max Temp</span>
+              <span class="weather-value temp-value">${dayData.day.maxtemp_c}°C</span>
+            </div>
+            <div class="weather-data">
+              <span class="weather-label">Min Temp</span>
+              <span class="weather-value temp-value">${dayData.day.mintemp_c}°C</span>
+            </div>
+            <div class="weather-data">
+              <span class="weather-label">Wind</span>
+              <span class="weather-value">${dayData.day.maxwind_kph} km/h</span>
+            </div>
+            <div class="weather-data">
+              <span class="weather-label">Precipitation</span>
+              <span class="weather-value">${dayData.day.totalprecip_mm} mm</span>
+            </div>
+            <div class="weather-data">
+              <span class="weather-label">Pressure</span>
+              <span class="weather-value">${Math.round(dayData.hour[0].pressure_mb)} mb</span>
+            </div>
+            <div class="weather-data">
+              <span class="weather-label">Humidity</span>
+              <span class="weather-value">${dayData.day.avghumidity}%</span>
+            </div>
+          </div>
+        `;
+        dailyForecastContainer.appendChild(dayCard);
+      }
+    }
+
+    async function initWeatherApp(city) {
+      try {
+        const API_URL = `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${encodeURIComponent(city)}&days=3`;
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('City not found.');
+        const weatherData = await response.json();
+
+        updateLocationInfo(weatherData.location, weatherData.forecast.forecastday[0].astro);
+        updateDailyForecast(weatherData.forecast.forecastday);
+        updateHourlyForecast(weatherData.forecast.forecastday[0].hour, weatherData.location.tz_id);
+      } catch (error) {
+        dailyForecastContainer.innerHTML = `<div style="text-align:center;color:#c62828;padding:20px;">${error.message}</div>`; 
+        console.error('Error fetching weather data:', error);
+      }
+    }
+
+    function setupScrollSlider() {
+      const container = hourlyForecastContainer;
+      const track = document.getElementById('scrollSliderContainer');
+      const thumb = document.getElementById('scrollSliderThumb');
+
+      let isDragging = false;
+      let startX = 0;
+      let startLeft = 0;
+
+      // Mouse Drag
+      thumb.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        startLeft = parseFloat(thumb.style.left || '0');
+        document.addEventListener('mousemove', handleMouseMove);
+      });
+
+      function handleMouseMove(e) {
+        if (!isDragging) return;
+        const rect = track.getBoundingClientRect();
+        const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        thumb.style.left = `${percent * 100}%`;
+        container.scrollLeft = percent * (container.scrollWidth - container.clientWidth);
+      }
+
+      document.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+
+      // Touch Support
+      track.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        startX = e.touches[0].clientX;
+        startLeft = parseFloat(thumb.style.left || '0');
+      });
+
+      track.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        const rect = track.getBoundingClientRect();
+        const dx = e.touches[0].clientX - rect.left;
+        const percent = Math.max(0, Math.min(1, dx / rect.width));
+        thumb.style.left = `${percent * 100}%`;
+        container.scrollLeft = percent * (container.scrollWidth - container.clientWidth);
+        e.preventDefault();
+      });
+
+      track.addEventListener('touchend', () => {
+        isDragging = false;
+      });
+
+      // Sync thumb with scroll
+      container.addEventListener('scroll', () => {
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        const scrollPercent = maxScroll > 0 ? container.scrollLeft / maxScroll : 0;
+        thumb.style.left = `${scrollPercent * 100}%`;
+      });
+
+      thumb.style.left = '0%';
+    }
+
+    // Scroll Button Logic
+    prevBtn.addEventListener('click', () => {
+      hourlyForecastContainer.scrollBy({ left: -200, behavior: 'smooth' });
+    });
+
+    nextBtn.addEventListener('click', () => {
+      hourlyForecastContainer.scrollBy({ left: 200, behavior: 'smooth' });
+    })
+
+    // Init App
+    initWeatherApp('New York');
+
+    searchForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const city = cityInput.value.trim();
+      if (city) {
+        initWeatherApp(city);
+        cityInput.value = '';
+      }
+    });
+  </script>
+</body>
+</html>
